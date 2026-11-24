@@ -1,0 +1,7 @@
+{
+  "appId": "in.tgsp.registry",
+  "appName": "TGSP Registry",
+  "webDir": "www",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": false }
+}
