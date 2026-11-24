@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TGSP Registry</title>
+<style>
+:root{--bg:#f1f4fa;--card:#fff;--tx:#1b1f3b;--mu:#667;--pr:#1e6b4f;--bd:#cfd6e4;--hd:#e3f1ea;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12141f;--card:#1d2033;--tx:#e8eaf6;--mu:#9aa;--pr:#3fae83;--bd:#3a3f63;--hd:#24384a}}
+:root[data-theme="dark"]{--bg:#12141f;--card:#1d2033;--tx:#e8eaf6;--mu:#9aa;--pr:#3fae83;--bd:#3a3f63;--hd:#24384a}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;font:14px system-ui,sans-serif;background:var(--bg);color:var(--tx)}
+header{background:var(--pr);color:#fff;padding:10px 12px;font-weight:600}
+button,input,textarea{font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:6px;padding:7px 9px}
+button{background:var(--pr);color:#fff;border:0;cursor:pointer}button.s{background:transparent;color:var(--pr);border:1px solid var(--pr)}button.d{background:#c0392b}
+.tabs{display:flex;gap:4px;overflow-x:auto;padding:6px;background:var(--card);border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:6}
+.tabs button{white-space:nowrap;background:var(--hd);color:var(--tx);padding:6px 10px;font-size:13px}.tabs button.on{background:var(--pr);color:#fff}
+.bar{display:flex;flex-wrap:wrap;gap:6px;padding:8px;align-items:center}
+.bar input{flex:1;min-width:140px}
+.gw{overflow:auto;max-height:64vh;margin:0 8px;border:1px solid var(--bd);border-radius:6px;background:var(--card)}
+table{border-collapse:collapse}
+th{position:sticky;top:0;background:var(--hd);padding:6px;font-size:12px;text-align:left;white-space:nowrap;border:1px solid var(--bd);z-index:2}
+td{border:1px solid var(--bd);padding:0}
+td input{border:0;border-radius:0;width:140px;padding:8px 6px;background:transparent;font-size:14px}
+td input.bad{background:rgba(192,57,43,.25)}
+.rn{position:sticky;left:0;background:var(--hd);min-width:78px;white-space:nowrap;font-size:12px;padding:2px 4px;z-index:1}
+.rn button{padding:2px 6px;font-size:12px;margin-right:2px}
+.pg{display:flex;justify-content:space-between;align-items:center;padding:8px;color:var(--mu);font-size:12px}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:10px;margin:8px}
+.it{padding:9px;border-bottom:1px solid var(--bd);cursor:pointer}.hint{color:var(--mu);padding:12px;font-size:13px}
+.kv{width:100%}.kv td{border:0;border-bottom:1px solid var(--bd);padding:3px 2px;font-size:13px;vertical-align:top}.kv td:first-child{width:46%;color:var(--mu)}
+.pt{border-collapse:collapse;width:100%}.pt th,.pt td{border:1px solid var(--bd);padding:4px 6px;font-size:12px;position:static}
+textarea{width:100%;height:80px;font-family:monospace;font-size:12px}
+details{margin:8px}summary{cursor:pointer;font-weight:600;padding:6px 0}
+@media(max-width:600px){input,textarea{font-size:16px}}
+@media print{header,.tabs,.bar,.np,details{display:none}body{background:#fff;color:#000}}
+</style>
+</head>
+<body>
+<header>TGSP — Personnel Registry</header>
+<div class="tabs" id="tabs"></div>
+<div id="main"></div>
+<details class="np" open><summary>📥 Import / Backup</summary>
+<div class="c"><b>📄 PDF upload</b> (HRMS Personal Registry PDF — ఒకటి లేదా చాలా ఒకేసారి)
+<div class="bar" style="padding:6px 0"><input type="file" id="fp" accept="application/pdf,.pdf" multiple onchange="impPdfs(this)" style="flex:1"></div>
+<div class="hint" style="padding:0">వచ్చేవి: 37 వ్యక్తిగత వివరాలు + Leave Balance, Education, Dependents, Postings, Probation, Rewards, Penalty, Languages, Bank, సెలవులు, Grievance, Increment, TSGLI. రానివి: Vaccination, PRC (చేత్తో/Excel లో ఎక్కించండి).</div></div>
+<div class="c"><b>📊 Excel (.xlsx) / CSV upload</b>
+<div class="bar" style="padding:6px 0"><input type="file" id="fx" accept=".xlsx,.csv,.tsv,.txt" onchange="impFile(this)" style="flex:1"></div>
+<div class="hint" style="padding:0">Excel లో ట్యాబ్ పేర్లు ఈ యాప్ ట్యాబ్ పేర్లలాగే ఉంటే (ఉదా. Personal Details, Posting Details) అన్ని షీట్లు ఒకేసారి వస్తాయి. ప్రతి షీట్ లో మొదటి row = headers, మొదటి column Employee ID (empid). ఒకే షీట్ ఉంటే ప్రస్తుతం తెరిచిన ట్యాబ్ లోకి వెళ్తుంది.</div></div>
+<div class="c"><div class="hint" style="padding:0 0 6px">లేదా data paste చేయండి (Excel నుంచి కాపీ చేసినది):</div>
+<textarea id="imp" placeholder="Paste data (tab లేదా comma)"></textarea>
+<div class="bar" style="padding:6px 0"><button onclick="impText($('imp').value)">Import to current sheet</button></div></div>
+<div class="c"><textarea id="js" placeholder="JSON backup ఇక్కడ paste చేసి Restore నొక్కండి"></textarea>
+<div class="bar" style="padding:6px 0"><button class="s" onclick="cp(JSON.stringify(S),'JSON backup copied ✓')">Copy JSON backup</button><button class="s" onclick="restore()">Restore JSON</button><button class="d" onclick="delAll()">Delete all</button></div></div>
+</details>
+<script src="schema.js"></script>
+<script src="pdfparse.js"></script>
+<script src="xlsxread.js"></script>
+<script>
+
+const PS=50,$=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let S={},cur='profile',pg=0,q='',pq='',pid='',st=0;
+try{S=JSON.parse(localStorage.getItem('tgsheet')||'{}')}catch(x){}
+SH.forEach(s=>{if(!Array.isArray(S[s[0]]))S[s[0]]=[]});
+function flash(m,ok){let t=$('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;left:8px;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:99;color:#fff;padding:10px;border-radius:8px;font-size:14px';document.body.appendChild(t)}t.style.background=ok?'#1e8449':'#c0392b';t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>{t.style.display='none'},ok?1500:6000)}
+function save(){clearTimeout(st);st=setTimeout(()=>{try{localStorage.setItem('tgsheet',JSON.stringify(S));flash('Saved ✓',1)}catch(x){flash('Storage full/blocked — Copy JSON backup తీసుకోండి')}},400)}
+function ask(m){return new Promise(r=>{const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px';o.innerHTML='<div class="c" style="max-width:340px;margin:0"><p style="margin:0 0 12px;font-size:15px"></p><div class="bar" style="justify-content:flex-end;padding:0"><button class="s" id="ano">వద్దు</button><button id="ayes">అవును</button></div></div>';o.querySelector('p').textContent=m;document.body.appendChild(o);const f=v=>{o.remove();r(v)};o.querySelector('#ano').onclick=()=>f(false);o.querySelector('#ayes').onclick=()=>f(true)})}
+async function cp(t,m){try{await navigator.clipboard.writeText(t);flash(m,1)}catch(x){$('js').value=t;flash('Text box లో ఉంది — select చేసి copy చేయండి')}}
+const sh=()=>SH.find(s=>s[0]==cur),cols=()=>sh()[2],blank=()=>cols().map(()=>'');
+
+function tabs(){$('tabs').innerHTML=`<button class="${cur=='profile'?'on':''}" onclick="go('profile')">🔍 Profile</button>`+SH.map(s=>`<button class="${cur==s[0]?'on':''}" onclick="go('${s[0]}')">${esc(s[1])} (${S[s[0]].length})</button>`).join('')}
+function go(k){cur=k;pg=0;q='';tabs();view();scrollTo(0,0)}
+function view(){if(cur=='profile')return profile();
+const rows=S[cur],c=cols();let idx=rows.map((r,i)=>i);
+if(q){const k=q.toLowerCase();idx=idx.filter(i=>rows[i].join(' ').toLowerCase().includes(k))}
+const pages=Math.max(1,Math.ceil(idx.length/PS));if(pg>=pages)pg=pages-1;const sl=idx.slice(pg*PS,pg*PS+PS);
+const ids=new Set(S.personal.map(r=>r[0]));
+$('main').innerHTML=`<div class="bar"><input id="sq" placeholder="🔍 ఈ sheet లో వెతకండి" value="${esc(q)}" oninput="q=this.value;pg=0;view();$('sq').focus()"><button onclick="addRow()">+ Row</button><button class="s" onclick="copySheet()">Copy sheet</button></div>
+<div class="gw" id="grid"><table><thead><tr><th class="rn" style="z-index:3"></th>${c.map(x=>`<th>${esc(x[1])}</th>`).join('')}</tr></thead><tbody>${sl.map(i=>`<tr><td class="rn"><button class="d" onclick="delRow(${i})">✕</button>${cur=='personal'?`<button class="s" onclick="openP(${i})">ⓘ</button>`:''}${i+1}</td>${c.map((x,j)=>`<td><input data-r="${i}" data-c="${j}" class="${cur!='personal'&&j==0&&rows[i][0]&&!ids.has(rows[i][0])?'bad':''}" value="${esc(rows[i][j])}" placeholder="${x[2]=='d'?'dd/mm/yyyy':''}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>
+<div class="pg"><button class="s" onclick="pg=Math.max(0,pg-1);view()">◀</button><span>${idx.length?pg*PS+1:0}–${Math.min(idx.length,pg*PS+PS)} / ${idx.length}${cur!='personal'?' • ఎరుపు = Personal లో ఆ ID లేదు':''}</span><button class="s" onclick="pg++;view()">▶</button></div>
+<div class="hint">Excel/Sheets నుంచి cells copy చేసి ఏదైనా cell లో paste చేస్తే వరుసగా నిండుతాయి.</div>`;
+const g=$('grid');
+g.onchange=e=>{const t=e.target;if(t.dataset.r==null)return;const r=+t.dataset.r,j=+t.dataset.c;let v=t.value.trim();if(c[j][2]=='d')v=nd(v);S[cur][r][j]=v;t.value=v;save();tabs()};
+g.onpaste=e=>{const t=e.target;if(t.dataset.r==null)return;const txt=(e.clipboardData||window.clipboardData).getData('text').replace(/\r/g,'').replace(/\n$/,'');if(!/[\t\n]/.test(txt))return;e.preventDefault();
+const L=txt.split('\n'),r0=+t.dataset.r,c0=+t.dataset.c;L.forEach((ln,a)=>{while(S[cur].length<=r0+a)S[cur].push(blank());ln.split('\t').forEach((v,b)=>{const j=c0+b;if(j<c.length){v=v.trim();S[cur][r0+a][j]=c[j][2]=='d'?nd(v):v}})});save();tabs();view();flash(L.length+' rows pasted',1)}}
+function addRow(){q='';S[cur].push(blank());pg=Math.floor((S[cur].length-1)/PS);tabs();view();const i=document.querySelectorAll('#grid tbody tr:last-child input')[0];if(i)i.focus();save()}
+async function delRow(i){if(await ask('Row '+(i+1)+' delete చేయాలా?')){S[cur].splice(i,1);save();tabs();view()}}
+function copySheet(){cp(cols().map(c=>c[1]).join('\t')+'\n'+S[cur].map(r=>r.map(v=>String(v).replace(/[\t\n]/g,' ')).join('\t')).join('\n'),'Sheet copied — Excel/Sheets లో paste చేయండి')}
+function openP(i){pid=S.personal[i][0];pq=S.personal[i][1];cur='profile';tabs();view();scrollTo(0,0)}
+
+function profile(){$('main').innerHTML=`<div class="bar np"><input id="pq" placeholder="🔍 పేరు / ID / ఫోన్ / యూనిట్ / జనరల్ నంబర్…" value="${esc(pq)}" oninput="pq=this.value;plist()"></div><div id="pl"></div><div id="pv"></div>`;plist();pshow()}
+function plist(){const k=pq.toLowerCase().trim(),L=$('pl');if(!k){L.innerHTML='<div class="hint">పైన టైప్ చేసి వెతకండి. ఒకరిని నొక్కితే 6 పేజీల వివరాలు అన్నీ కనిపిస్తాయి.</div>';return}
+const m=S.personal.filter(r=>r.join(' ').toLowerCase().includes(k)).slice(0,20);
+L.innerHTML=m.map(r=>`<div class="it" data-i="${esc(r[0])}" onclick="pid=this.dataset.i;pshow();$('pv').scrollIntoView()"><b>${esc(r[1])}</b> #${esc(r[0])}<br><small>${esc(r[3])} • ${esc(r[15])} • ${esc(r[11])}</small></div>`).join('')||'<div class="hint">ఏమీ దొరకలేదు</div>'}
+function pshow(){const V=$('pv');if(!V)return;const r=S.personal.find(x=>x[0]==pid);if(!r){V.innerHTML='';return}
+V.innerHTML=`<div class="bar np"><button class="s" onclick="print()">🖨 Print</button></div><div class="c"><h3 style="text-align:center;margin:0 0 8px;font-size:14px">GOVERNMENT OF TELANGANA<br>TELANGANA POLICE — PERSONAL REGISTRY</h3><table class="kv">${SH[0][2].map((c,i)=>`<tr><td>${i+1}. ${esc(c[1])}</td><td>: <b>${esc(r[i])||'--'}</b></td></tr>`).join('')}</table></div>`+
+SH.slice(1).map(s=>{const rows=S[s[0]].filter(x=>x[0]==pid);return `<div class="c"><b>${esc(s[1])}</b>`+(rows.length?`<div style="overflow-x:auto"><table class="pt"><tr><th>#</th>${s[2].slice(1).map(c=>`<th>${esc(c[1])}</th>`).join('')}</tr>${rows.map((x,i)=>`<tr><td>${i+1}</td>${x.slice(1).map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</table></div>`:'<div class="hint" style="padding:4px 0">No Data Available.</div>')+'</div>'}).join('')}
+
+function parseCSV(t){const o=[];let r=[],c='',qq=false;for(let i=0;i<t.length;i++){const ch=t[i];if(qq){if(ch=='"'){if(t[i+1]=='"'){c+='"';i++}else qq=false}else c+=ch}else if(ch=='"')qq=true;else if(ch==','){r.push(c);c=''}else if(ch=='\n'||ch=='\r'){if(ch=='\r'&&t[i+1]=='\n')i++;r.push(c);c='';if(r.some(x=>x.trim()))o.push(r);r=[]}else c+=ch}r.push(c);if(r.some(x=>x.trim()))o.push(r);return o}
+function toRows(t){const first=t.split('\n')[0]||'';return first.includes('\t')?t.replace(/\r/g,'').split('\n').filter(x=>x.trim()).map(l=>l.split('\t')):parseCSV(t)}
+function importRows(key,p){const c=SH.find(x=>x[0]==key)[2];if(p.length<2)return -1;
+const nm=s=>String(s).toLowerCase().replace(/[^a-z0-9]/g,''),h=p[0].map(nm),map=c.map(x=>h.findIndex(y=>y==nm(x[0])||y==nm(x[1])));
+if(map.every(m=>m<0))return -2;let n=0;
+p.slice(1).forEach(r=>{const row=c.map((x,j)=>{let v=map[j]>=0?String(r[map[j]]==null?'':r[map[j]]).trim():'';return x[2]=='d'?nd(v):v});if(!row[0])return;
+if(key=='personal'){const k=S.personal.findIndex(x=>x[0]==row[0]);if(k>=0){row.forEach((v,j)=>{if(map[j]>=0)S.personal[k][j]=v});n++;return}}
+S[key].push(row);n++});return n}
+function impText(t){if(cur=='profile'){flash('ముందు పైన ఒక sheet (ఉదా. Personal Details) ఎంచుకోండి');return}
+const n=importRows(cur,toRows(t));if(n==-1)flash('Data లేదు — మొదటి row headers ఉండాలి');else if(n==-2)flash('Headers సరిపోలలేదు — "Copy sheet" తో headers చూడండి');else{save();tabs();view();flash(n+' rows imported',1)}}
+const nmz=s=>String(s).toLowerCase().replace(/[^a-z0-9]/g,'');
+function matchSheet(name){const n=nmz(name);if(!n)return null;const cand=s=>[s[0],nmz(s[1]),nmz(s[1]).replace(/details$/,'')];
+let f=SH.find(s=>cand(s).includes(n));if(f)return f[0];
+f=SH.find(s=>cand(s).some(c=>c.length>=4&&n.length>=4&&(c.startsWith(n)||n.startsWith(c))));return f?f[0]:null}
+async function impFile(el){const f=el.files[0];if(!f)return;el.value='';
+try{if(/\.xlsx$/i.test(f.name)){const wbk=await xlsxRead(await f.arrayBuffer()),names=Object.keys(wbk),done=[],skip=[];
+names.forEach(nm=>{const key=matchSheet(nm);const n=key?importRows(key,wbk[nm]):-3;if(n>=0)done.push(SH.find(s=>s[0]==key)[1]+': '+n);else skip.push(nm)});
+if(!done.length&&names.length==1&&cur!='profile'){const n=importRows(cur,wbk[names[0]]);if(n>=0){done.push(sh()[1]+': '+n);skip.length=0}}
+save();tabs();view();flash((done.join(' • ')||'ఏమీ import కాలేదు — sheet పేర్లు/headers సరిచూడండి')+(skip.length?' | skip: '+skip.join(', '):''),done.length>0)}
+else if(/\.xls$/i.test(f.name)){flash('.xls పాత format — Excel లో "Save as .xlsx" చేసి మళ్ళీ ఎంచుకోండి')}
+else impText(await f.text())}catch(x){flash('Error: '+(x.message||x))}}
+let pdfLib=null;
+async function impPdfs(el){const fs=[...el.files];el.value='';if(!fs.length)return;
+try{if(!pdfLib){pdfLib=await import('./lib/pdf.min.mjs');pdfLib.GlobalWorkerOptions.workerSrc='lib/pdf.worker.min.mjs'}}catch(x){flash('PDF library load కాలేదు: '+(x.message||x));return}
+let ok=0,last='';const bad=[];
+for(let i=0;i<fs.length;i++){flash('PDF '+(i+1)+'/'+fs.length+' చదువుతున్నాను…',1);
+try{const pages=await pdfToPages(pdfLib,new Uint8Array(await fs[i].arrayBuffer())),r=parseRegistry(pages);if(!r.personal){bad.push(fs[i].name);continue}
+const id=r.personal[0],k=S.personal.findIndex(x=>x[0]==id);if(k>=0)S.personal[k]=r.personal;else S.personal.push(r.personal);
+for(const key in r.tables)S[key]=S[key].filter(x=>x[0]!=id).concat(r.tables[key]);ok++;last=id}catch(x){bad.push(fs[i].name+' ('+(x.message||x)+')')}}
+save();if(ok==1&&fs.length==1){pid=last;pq=last;cur='profile'}tabs();view();flash(ok+' PDF import అయ్యాయి'+(bad.length?' • కాలేదు: '+bad.join(', '):''),!bad.length)}
+const fdIso=v=>{const m=/^(\d{4})-(\d\d)-(\d\d)$/.exec(v||'');return m?m[3]+'/'+m[2]+'/'+m[1]:(v||'')};
+async function restore(){try{const o=JSON.parse($('js').value);if(!await ask('Backup restore చేయాలా? (ఉన్న data తో కలుస్తుంది)'))return;
+const vals=Object.values(o);if(vals.length&&vals[0]&&vals[0].p){vals.forEach(r=>{const id=r.p.empid,c=SH[0][2],row=c.map(x=>x[2]=='d'?fdIso(r.p[x[0]]):(r.p[x[0]]||'')),k=S.personal.findIndex(x=>x[0]==id);if(k>=0)S.personal[k]=row;else S.personal.push(row);
+Object.entries(r.t||{}).forEach(([key,rs])=>{const s2=SH.find(s=>s[0]==key);if(!s2)return;S[key]=S[key].filter(x=>x[0]!=id);rs.forEach(x=>S[key].push(s2[2].map((cc,j)=>j==0?id:(cc[2]=='d'?fdIso(x[cc[0]]):(x[cc[0]]||'')))))})})}
+else{SH.forEach(s=>{if(Array.isArray(o[s[0]]))S[s[0]]=S[s[0]].concat(o[s[0]])})}
+save();tabs();view();flash('Restored',1)}catch(x){flash('Invalid JSON')}}
+async function delAll(){if(await ask('అన్ని data delete చేయాలా?')){SH.forEach(s=>S[s[0]]=[]);save();tabs();view()}}
+window.addEventListener('error',e=>flash('Error: '+e.message));
+tabs();view();
+</script>
+</body>
+</html>
